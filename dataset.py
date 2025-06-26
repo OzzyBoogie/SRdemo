@@ -34,61 +34,76 @@ def normalize(x):
 def prepareH5(data_path):
     print("Preparing H5")
     # HIGH
-    data_path = os.path.join(os.getcwd(), "SR/X2")
     print("Searching in:", os.path.join(data_path, "HIGH", "*.png"))
     files = glob.glob(os.path.join(data_path, "HIGH", "*.png"))
     print("Found", len(files), "files")
     files.sort()
     h5f_train = h5py.File(data_path + "/HIGH.h5", "w")
-    h5f_eval = h5py.File(data_path, "/HIGH_VAL.h5", "w")
+    h5f_eval = h5py.File(data_path + "/HIGH_VAL.h5", "w")
+
+    train_num = 0
+    eval_num = 0
+
     for i in range(len(files)):
         img = cv2.imread(files[i])
         img = np.transpose(img, (2, 0, 1))
         img = np.float32(normalize(img))
         if i < len(files) * 0.9:
-            h5f_train.create_dataset(str(i), data=img)
+            h5f_train.create_dataset(str(train_num), data=img)
+            train_num += 1
         else:
-            h5f_eval.create_dataset(str(i), data=img)
+            h5f_eval.create_dataset(str(eval_num), data=img)
+            eval_num += 1
 
     # LOW
     files = glob.glob(os.path.join(data_path, "LOW", "*.png"))
     files.sort()
     h5f_train = h5py.File(data_path + "/LOW.h5", "w")
-    h5f_eval = h5py.File(data_path, "/LOW_VAL.h5", "w")
+    h5f_eval = h5py.File(data_path + "/LOW_VAL.h5", "w")
+
+    train_num = 0
+    eval_num = 0
+
     for i in range(len(files)):
         img = cv2.imread(files[i])
         img = np.transpose(img, (2, 0, 1))
         img = np.float32(normalize(img))
         if i < len(files) * 0.9:
-            h5f_train.create_dataset(str(i), data=img)
+            h5f_train.create_dataset(str(train_num), data=img)
+            train_num += 1
         else:
-            h5f_eval.create_dataset(str(i), data=img)
+            h5f_eval.create_dataset(str(eval_num), data=img)
+            eval_num += 1
     h5f_train.close()
     h5f_eval.close()
 
 
 class Dataset(udata.Dataset):
-    def __init__(self, train=True, data_path="/X2"):
+    def __init__(self, train=True, data_path="X2"):
         super().__init__()
         self.train = train
         self.data_path = data_path
         # self.h5f = h5py.File(data_path, "r")
+        print(self.data_path)
         if self.train:
-            self.hr_data = h5py.File(self.data_path + "/HIGH", "r")
-            self.lr_data = h5py.File(self.data_path + "/LOW", "r")
+            self.hr_data = h5py.File(self.data_path + "/HIGH.h5", "r")
+            self.lr_data = h5py.File(self.data_path + "/LOW.h5", "r")
         else:
-            self.hr_data = h5py.File(self.data_path + "/HIGH_VAL", "r")
-            self.lr_data = h5py.File(self.data_path + "/LOW_VAL", "r")
+            self.hr_data = h5py.File(self.data_path + "/HIGH_VAL.h5", "r")
+            self.lr_data = h5py.File(self.data_path + "/LOW_VAL.h5", "r")
 
     def __len__(self):
         return len(self.hr_data)
 
     def __getitem__(self, index):
-        hr = self.hr_data[index]  # (H, W, C)
-        lr = self.lr_data[index]
+        hr = self.hr_data[str(index)][:]  # (C, H, W)
+        lr = self.lr_data[str(index)][:]
+
+        # print(index)
+        # print(hr.shape)
 
         # 转为 C, H, W
-        hr = torch.from_numpy(hr.transpose((2, 0, 1))).float() / 255
-        lr = torch.from_numpy(lr.transpose((2, 0, 1))).float() / 255
+        # hr = torch.from_numpy(hr.transpose((2, 0, 1))).float() / 255
+        # lr = torch.from_numpy(lr.transpose((2, 0, 1))).float() / 255
 
         return lr, hr

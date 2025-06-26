@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class SRmodel(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels=3, out_channels=3):
         super().__init__()
         self.feature = nn.Sequential(
             nn.Conv2d(in_channels, 64, 3, stride=1, padding=1),

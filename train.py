@@ -12,7 +12,7 @@ parser.add_argument("--epochs", type=int, default=100)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--milestone", type=int, default=20)
 parser.add_argument("--data_path", type=str, default="X2")
-parser.add_argument("--prepareH5", type=bool, default=True)
+parser.add_argument("--prepareH5", type=bool, default=False)
 opt = parser.parse_args()
 
 
@@ -20,7 +20,7 @@ def main():
     print("Load dataset\n")
     dataset_train = Dataset(train=True, data_path="X2")
     print(len(dataset_train))
-    dataset_val = Dataset(train=False, data_path="/X2")
+    dataset_val = Dataset(train=False, data_path="X2")
     loader_train = DataLoader(dataset=dataset_train, shuffle=True)
     loader_val = DataLoader(dataset=dataset_val, shuffle=False)
 
